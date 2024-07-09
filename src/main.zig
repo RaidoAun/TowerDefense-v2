@@ -1,6 +1,7 @@
 const std = @import("std");
 const rl = @import("raylib");
 const objects = @import("lib/objects.zig");
+const utils = @import("lib/shapes/utils.zig");
 const Player = objects.Player;
 const Bubble = objects.Bubble;
 
@@ -45,7 +46,7 @@ fn update(state: *GameState) void {
 
     for (state.bubbles.items) |*v| {
         v.update(dt);
-        if (state.player.shape.isCollision(v.shape)) {
+        if (utils.isCollisionRectCircle(state.player.shape, v.shape)) {
             v.onCollision();
         }
     }
