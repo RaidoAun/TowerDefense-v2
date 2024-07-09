@@ -6,16 +6,16 @@ const Player = objects.Player;
 const Bubble = objects.Bubble;
 
 const GameState = struct {
-    deltaTime: i64,
+    deltaTime: f64,
     player: Player,
     bubbles: std.ArrayList(Bubble),
 };
 
 fn initGame(allocator: *const std.mem.Allocator) !GameState {
     var state = GameState{
-        .deltaTime = 0,
+        .deltaTime = 0.0,
         .player = .{
-            .speed = 0.0003,
+            .speed = 500,
             .shape = .{
                 .x = 400,
                 .y = 225,
@@ -28,7 +28,7 @@ fn initGame(allocator: *const std.mem.Allocator) !GameState {
     };
     for (0..10) |i| {
         try state.bubbles.append(Bubble{
-            .speed = 0.0002,
+            .speed = 200,
             .shape = .{
                 .x = @intCast(i * 50),
                 .y = 200,
@@ -41,7 +41,7 @@ fn initGame(allocator: *const std.mem.Allocator) !GameState {
 }
 
 fn update(state: *GameState) void {
-    const dt: f64 = @floatFromInt(state.deltaTime);
+    const dt: f64 = state.deltaTime;
     state.player.update(dt);
 
     for (state.bubbles.items) |*v| {
@@ -71,22 +71,32 @@ pub fn main() !void {
     rl.initWindow(screenWidth, screenHeight, "raylib-zig [core] example - basic window");
     defer rl.closeWindow();
 
-    rl.setTargetFPS(60);
+    const fps = 165.0;
+    const dt: f64 = 1.0 / fps;
+    std.debug.print("{}\n", .{dt});
+
+    rl.setTargetFPS(fps);
 
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
     const allocator = arena.allocator();
 
     var state = try initGame(&allocator);
+    state.deltaTime = dt;
 
-    var previousTime = std.time.microTimestamp();
+    var previousTime: i64 = std.time.microTimestamp();
+    var passedTime: f64 = 0.0;
     while (!rl.windowShouldClose()) {
         const currentTime = std.time.microTimestamp();
-        state.deltaTime = currentTime - previousTime;
-        previousTime = std.time.microTimestamp();
-        // std.debug.print("{}\n", .{state.deltaTime});
+        passedTime += @as(f64, @floatFromInt(currentTime - previousTime)) / @as(f64, 1000000.0);
+        while (passedTime > 0) {
+            previousTime = std.time.microTimestamp();
+            // std.debug.print("update\n", .{});
+            passedTime -= dt;
+            update(&state);
+        }
 
-        update(&state);
+        // std.debug.print("draw\n", .{});
         draw(&state);
     }
 }
