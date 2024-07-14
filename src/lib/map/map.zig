@@ -9,6 +9,7 @@ const rl = @import("raylib");
 pub fn GameMap(sizeX: i32, sizeY: i32) type {
     return struct {
         const Self = @This();
+        allocator: std.mem.Allocator,
         // TODO using Rectangle here is very inefficient
         blocks: *[sizeX][sizeY]Block,
 
@@ -20,10 +21,13 @@ pub fn GameMap(sizeX: i32, sizeY: i32) type {
             }
         }
         pub fn initMap(allocator: *const std.mem.Allocator) !GameMap(sizeX, sizeY) {
-            var data = try allocator.create([sizeX][sizeY]Block);
+            var result = GameMap(sizeX, sizeY){
+                .blocks = try allocator.create([sizeX][sizeY]Block),
+                .allocator = allocator,
+            };
 
-            for (0..data.len) |i| {
-                var row = &data[i];
+            for (0..result.data.len) |i| {
+                var row = &result.data[i];
                 for (0..row.len) |j| {
                     row[j] = .{
                         .shape = shapes.Rectangle{
@@ -37,9 +41,11 @@ pub fn GameMap(sizeX: i32, sizeY: i32) type {
                     };
                 }
             }
-            return .{
-                .blocks = data,
-            };
+            return result;
+        }
+
+        pub fn deInit(self: Self) void {
+            self.allocator.destroy(self.blocks);
         }
     };
 }
