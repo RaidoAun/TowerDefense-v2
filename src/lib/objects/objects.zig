@@ -24,16 +24,17 @@ pub const Player = struct {
         }
     }
 };
-
-pub const Bubble = struct {
+// TODO complete this
+pub const Bullet = struct {
+    const Self = @This();
     shape: Circle,
     speed: f32,
-    pub fn update(self: *Bubble, dt: f64) void {
+    pub fn update(self: *Self, dt: f64) void {
         const dSpeed: i32 = @intFromFloat(self.speed * dt);
         self.shape.y += dSpeed;
     }
 
-    pub fn onCollision(self: *Bubble) void {
+    pub fn onCollision(self: *Self) void {
         self.shape.y -= 1000;
     }
 };
