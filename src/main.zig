@@ -5,12 +5,10 @@ const utils = @import("lib/shapes/utils.zig");
 const shapes = @import("lib/shapes/shapes.zig");
 const map = @import("lib/map/map.zig");
 const Player = objects.Player;
-const Bubble = objects.Bubble;
 
 const GameState = struct {
     deltaTime: f64,
     player: Player,
-    bubbles: std.ArrayList(Bubble),
     map: map.GameMap(200, 100),
 };
 
@@ -27,33 +25,14 @@ fn initGame(allocator: *const std.mem.Allocator) !GameState {
                 .color = rl.Color.red,
             },
         },
-        .bubbles = std.ArrayList(Bubble).init(allocator.*),
         .map = try map.GameMap(100, 100).initMap(allocator),
     };
-    // for (0..10) |i| {
-    //     try state.bubbles.append(Bubble{
-    //         .speed = 200,
-    //         .shape = .{
-    //             .x = @intCast(i * 50),
-    //             .y = 200,
-    //             .radius = 25,
-    //             .color = rl.Color.green,
-    //         },
-    //     });
-    // }
     return state;
 }
 
 fn update(state: *GameState) void {
     const dt: f64 = state.deltaTime;
     state.player.update(dt);
-
-    for (state.bubbles.items) |*v| {
-        v.update(dt);
-        if (utils.isCollisionRectCircle(state.player.shape, v.shape)) {
-            v.onCollision();
-        }
-    }
 }
 
 fn draw(state: *const GameState) void {
@@ -63,10 +42,6 @@ fn draw(state: *const GameState) void {
 
     state.map.draw();
     state.player.shape.draw();
-
-    for (state.bubbles.items) |*v| {
-        v.shape.draw();
-    }
 }
 
 pub fn main() !void {
