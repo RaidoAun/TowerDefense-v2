@@ -6,6 +6,7 @@ const rl = @import("raylib");
 
 // TODO currently map size must be comptime known
 // make it so it can be modified during runtime
+// make sure to call deinit when multiple maps can be made
 pub fn GameMap(sizeX: i32, sizeY: i32) type {
     return struct {
         const Self = @This();

@@ -12,6 +12,7 @@ const GameState = struct {
     map: map.GameMap(200, 100),
 };
 
+// TODO make deinit func, also use maps deinit there
 fn initGame(allocator: *const std.mem.Allocator) !GameState {
     const state = GameState{
         .deltaTime = 0.0,
