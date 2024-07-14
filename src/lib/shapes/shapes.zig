@@ -14,8 +14,8 @@ pub const Circle = struct {
 pub const Rectangle = struct {
     x: i32,
     y: i32,
-    width: i32,
-    height: i32,
+    width: u16,
+    height: u16,
     color: rl.Color,
     pub fn draw(self: Rectangle) void {
         rl.drawRectangle(self.x, self.y, self.width, self.height, self.color);
