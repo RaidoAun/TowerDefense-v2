@@ -1,5 +1,6 @@
+// TODO split this up into subfiles
 const rl = @import("raylib");
-const shapes = @import("shapes/shapes.zig");
+const shapes = @import("../shapes/shapes.zig");
 const Rectangle = shapes.Rectangle;
 const Circle = shapes.Circle;
 
