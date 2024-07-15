@@ -64,6 +64,7 @@ pub fn GameMap() type {
         }
 
         pub fn deInit(self: Self) void {
+            // TODO also free all the slices pointed to by the outer slice
             self.allocator.free(self.blocks);
         }
     };
