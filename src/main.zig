@@ -25,7 +25,7 @@ const GameState = struct {
         rl.clearBackground(rl.Color.white);
 
         self.map.draw();
-        self.player.shape.draw();
+        // self.player.shape.draw();
     }
 
     fn init(allocator: std.mem.Allocator) !GameState {
@@ -41,7 +41,7 @@ const GameState = struct {
                     .color = rl.Color.red,
                 },
             },
-            .map = try map.GameMap().initMap(allocator, 100, 100),
+            .map = try map.GameMap().initMap(allocator, 1000, 5000),
             .allocator = allocator,
         };
     }
@@ -87,6 +87,6 @@ pub fn main() !void {
 test "test map memory allocation and deallocation" {
     const allocator = std.testing.allocator;
 
-    const m = try map.GameMap().initMap(allocator, 1000, 500);
+    const m = try map.GameMap().initMap(allocator, 200, 400);
     m.deInit();
 }

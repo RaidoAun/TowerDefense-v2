@@ -12,7 +12,6 @@ const Pattern = struct {
     allocator: std.mem.Allocator,
 
     fn init(allocator: std.mem.Allocator, sizeX: MapSize, sizeY: MapSize, steps: u8) !Pattern {
-        _ = steps;
         var random = std.Random.DefaultPrng.init(0);
 
         const data = try allocator.alloc([]bool, sizeY);
@@ -22,10 +21,59 @@ const Pattern = struct {
                 b.* = random.random().boolean();
             }
         }
+
+        // mutating the values that the data slices points to
+        try smoothen(allocator, data, sizeX, sizeY, steps);
+
         return .{
             .data = data,
             .allocator = allocator,
         };
+    }
+
+    // TODO this could surely be optimized
+    fn smoothen(allocator: std.mem.Allocator, pattern: [][]bool, sizeX: MapSize, sizeY: MapSize, steps: u8) !void {
+        if (steps == 0) return;
+
+        const result = try allocator.alloc([]bool, sizeY);
+        defer allocator.free(result);
+
+        for (result) |*row| {
+            row.* = try allocator.alloc(bool, sizeX);
+        }
+
+        var i: u8 = 0;
+        while (i < steps) : (i += 1) {
+            for (0..sizeY) |y| {
+                for (0..sizeX) |x| {
+                    const val = pattern[y][x];
+                    var same_count: usize = if (!val) 2 else 0;
+                    var different_count: usize = 0;
+
+                    const y0 = if (y > 0) y else 1;
+                    const x0 = if (x > 0) x else 1;
+
+                    for ((y0 - 1)..(y + 2)) |ny| {
+                        for ((x0 - 1)..(x + 2)) |nx| {
+                            if (ny == y and nx == x) continue; // Skip the current cell
+                            if (ny < sizeY and nx < sizeX) {
+                                if (pattern[ny][nx] == val) same_count += 1 else different_count += 1;
+                            }
+                        }
+                    }
+
+                    result[y][x] = if (same_count >= different_count) val else !val;
+                }
+            }
+
+            for (0..sizeY) |y| {
+                @memcpy(pattern[y], result[y]);
+            }
+        }
+
+        for (result) |row| {
+            allocator.free(row);
+        }
     }
 
     fn deInit(self: Self) void {
@@ -51,11 +99,11 @@ pub fn GameMap() type {
         }
 
         pub fn initMap(allocator: std.mem.Allocator, sizeX: MapSize, sizeY: MapSize) !GameMap() {
-            const block_size = 20;
+            const block_size = 5;
             const blocks = try allocator.alloc([]Block, sizeY);
 
             // TODO probably can use FixedBufferAllocator here
-            const pattern = try Pattern.init(allocator, sizeX, sizeY, 1);
+            const pattern = try Pattern.init(allocator, sizeX, sizeY, 3);
             defer pattern.deInit();
 
             for (blocks, 0..) |*row, i| {
