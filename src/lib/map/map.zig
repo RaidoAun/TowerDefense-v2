@@ -4,8 +4,39 @@ const block = @import("../objects/block.zig");
 const Block = block.Block;
 const rl = @import("raylib");
 
+const MapSize = u32;
+
+const Pattern = struct {
+    const Self = @This();
+    data: [][]bool,
+    allocator: std.mem.Allocator,
+
+    fn init(allocator: std.mem.Allocator, sizeX: MapSize, sizeY: MapSize, steps: u8) !Pattern {
+        _ = steps;
+        var random = std.Random.DefaultPrng.init(0);
+
+        const data = try allocator.alloc([]bool, sizeY);
+        for (data) |*row| {
+            row.* = try allocator.alloc(bool, sizeX);
+            for (row.*) |*b| {
+                b.* = random.random().boolean();
+            }
+        }
+        return .{
+            .data = data,
+            .allocator = allocator,
+        };
+    }
+
+    fn deInit(self: Self) void {
+        for (self.data) |row| {
+            self.allocator.free(row);
+        }
+        self.allocator.free(self.data);
+    }
+};
+
 pub fn GameMap() type {
-    const MapSize = u32;
     return struct {
         const Self = @This();
         allocator: std.mem.Allocator,
@@ -24,12 +55,13 @@ pub fn GameMap() type {
             const blocks = try allocator.alloc([]Block, sizeY);
 
             // TODO probably can use FixedBufferAllocator here
-            const pattern = try generateMapPattern(allocator, sizeX, sizeY, 1);
+            const pattern = try Pattern.init(allocator, sizeX, sizeY, 1);
+            defer pattern.deInit();
 
             for (blocks, 0..) |*row, i| {
                 row.* = try allocator.alloc(Block, sizeX);
                 for (row.*, 0..) |*b, j| {
-                    const is_wall = pattern[i][j];
+                    const is_wall = pattern.data[i][j];
                     b.* = .{
                         .shape = shapes.Rectangle{
                             .x = @intCast(block_size * j),
@@ -49,22 +81,10 @@ pub fn GameMap() type {
             };
         }
 
-        fn generateMapPattern(allocator: std.mem.Allocator, sizeX: MapSize, sizeY: MapSize, steps: u8) ![][]bool {
-            _ = steps;
-            var random = std.Random.DefaultPrng.init(0);
-
-            const pattern = try allocator.alloc([]bool, sizeY);
-            for (pattern) |*row| {
-                row.* = try allocator.alloc(bool, sizeX);
-                for (row.*) |*b| {
-                    b.* = random.random().boolean();
-                }
-            }
-            return pattern;
-        }
-
         pub fn deInit(self: Self) void {
-            // TODO also free all the slices pointed to by the outer slice
+            for (self.blocks) |row| {
+                self.allocator.free(row);
+            }
             self.allocator.free(self.blocks);
         }
     };
