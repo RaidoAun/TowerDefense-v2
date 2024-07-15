@@ -10,7 +10,7 @@ const GameState = struct {
     const Self = @This();
     deltaTime: f64,
     player: Player,
-    map: map.GameMap(100, 100),
+    map: map.GameMap(),
     allocator: std.mem.Allocator,
 
     fn update(self: *Self) void {
@@ -41,7 +41,7 @@ const GameState = struct {
                     .color = rl.Color.red,
                 },
             },
-            .map = try map.GameMap(100, 100).initMap(allocator),
+            .map = try map.GameMap().initMap(allocator, 100, 100),
             .allocator = allocator,
         };
     }
@@ -61,8 +61,6 @@ pub fn main() !void {
 
     const fps = 165.0;
     const dt: f64 = 1.0 / fps;
-    std.debug.print("{}\n", .{dt});
-    std.debug.print("sizeof rect {}\n", .{@sizeOf(map.GameMap(100, 100))});
 
     rl.setTargetFPS(fps);
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};

@@ -4,15 +4,11 @@ const block = @import("../objects/block.zig");
 const Block = block.Block;
 const rl = @import("raylib");
 
-// TODO currently map size must be comptime known
-// make it so it can be modified during runtime
-// make sure to call deinit when multiple maps can be made
-pub fn GameMap(sizeX: i32, sizeY: i32) type {
+pub fn GameMap() type {
     return struct {
         const Self = @This();
         allocator: std.mem.Allocator,
-        // TODO using Rectangle here is very inefficient
-        blocks: *[sizeX][sizeY]Block,
+        blocks: [][]Block,
 
         pub fn draw(self: Self) void {
             for (self.blocks) |row| {
@@ -21,16 +17,12 @@ pub fn GameMap(sizeX: i32, sizeY: i32) type {
                 }
             }
         }
-        pub fn initMap(allocator: std.mem.Allocator) !GameMap(sizeX, sizeY) {
-            var result = GameMap(sizeX, sizeY){
-                .blocks = try allocator.create([sizeX][sizeY]Block),
-                .allocator = allocator,
-            };
-
-            for (0..result.blocks.len) |i| {
-                var row = &result.blocks[i];
-                for (0..row.len) |j| {
-                    row[j] = .{
+        pub fn initMap(allocator: std.mem.Allocator, sizeX: u32, sizeY: u32) !GameMap() {
+            const blocks = try allocator.alloc([]Block, sizeY);
+            for (blocks, 0..) |*row, i| {
+                row.* = try allocator.alloc(Block, sizeX);
+                for (row.*, 0..) |*b, j| {
+                    b.* = .{
                         .shape = shapes.Rectangle{
                             .x = @intCast(20 * j),
                             .y = @intCast(20 * i),
@@ -42,11 +34,15 @@ pub fn GameMap(sizeX: i32, sizeY: i32) type {
                     };
                 }
             }
-            return result;
+
+            return .{
+                .blocks = blocks,
+                .allocator = allocator,
+            };
         }
 
         pub fn deInit(self: Self) void {
-            self.allocator.destroy(self.blocks);
+            self.allocator.free(self.blocks);
         }
     };
 }
