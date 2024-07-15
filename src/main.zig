@@ -45,6 +45,10 @@ const GameState = struct {
             .allocator = allocator,
         };
     }
+
+    fn deInit(self: Self) void {
+        self.map.deInit();
+    }
 };
 
 // TODO make deinit func, also use maps deinit there
@@ -65,6 +69,7 @@ pub fn main() !void {
     const allocator = gpa.allocator();
 
     var state = try GameState.init(allocator);
+    defer state.deInit();
     state.deltaTime = dt;
 
     var previousTime: i64 = std.time.microTimestamp();
