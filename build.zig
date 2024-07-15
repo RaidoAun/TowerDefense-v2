@@ -69,6 +69,10 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    exe_unit_tests.linkLibrary(raylib_artifact);
+    exe_unit_tests.root_module.addImport("raylib", raylib);
+    exe_unit_tests.root_module.addImport("raygui", raygui);
+
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
 
     // Similar to creating the run step earlier, this exposes a `test` step to
