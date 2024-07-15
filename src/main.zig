@@ -62,10 +62,7 @@ pub fn main() !void {
 
     rl.setTargetFPS(fps);
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-
-    var arena = std.heap.ArenaAllocator.init(gpa.allocator());
-    defer arena.deinit();
-    const allocator = arena.allocator();
+    const allocator = gpa.allocator();
 
     var state = try GameState.init(allocator);
     state.deltaTime = dt;
