@@ -21,14 +21,14 @@ pub fn GameMap(sizeX: i32, sizeY: i32) type {
                 }
             }
         }
-        pub fn initMap(allocator: *const std.mem.Allocator) !GameMap(sizeX, sizeY) {
+        pub fn initMap(allocator: std.mem.Allocator) !GameMap(sizeX, sizeY) {
             var result = GameMap(sizeX, sizeY){
                 .blocks = try allocator.create([sizeX][sizeY]Block),
                 .allocator = allocator,
             };
 
-            for (0..result.data.len) |i| {
-                var row = &result.data[i];
+            for (0..result.blocks.len) |i| {
+                var row = &result.blocks[i];
                 for (0..row.len) |j| {
                     row[j] = .{
                         .shape = shapes.Rectangle{

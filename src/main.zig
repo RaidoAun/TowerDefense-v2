@@ -7,44 +7,47 @@ const map = @import("lib/map/map.zig");
 const Player = objects.Player;
 
 const GameState = struct {
+    const Self = @This();
     deltaTime: f64,
     player: Player,
-    map: map.GameMap(200, 100),
+    map: map.GameMap(100, 100),
+    allocator: std.mem.Allocator,
+
+    fn update(self: *Self) void {
+        const dt: f64 = self.deltaTime;
+        self.player.update(dt);
+    }
+
+    fn draw(self: Self) void {
+        rl.beginDrawing();
+        defer rl.endDrawing();
+
+        rl.clearBackground(rl.Color.white);
+
+        self.map.draw();
+        self.player.shape.draw();
+    }
+
+    fn initGame(allocator: std.mem.Allocator) !GameState {
+        return .{
+            .deltaTime = 0.0,
+            .player = .{
+                .speed = 500,
+                .shape = .{
+                    .x = 400,
+                    .y = 225,
+                    .width = 200,
+                    .height = 20,
+                    .color = rl.Color.red,
+                },
+            },
+            .map = try map.GameMap(100, 100).initMap(allocator),
+            .allocator = allocator,
+        };
+    }
 };
 
 // TODO make deinit func, also use maps deinit there
-fn initGame(allocator: *const std.mem.Allocator) !GameState {
-    const state = GameState{
-        .deltaTime = 0.0,
-        .player = .{
-            .speed = 500,
-            .shape = .{
-                .x = 400,
-                .y = 225,
-                .width = 200,
-                .height = 20,
-                .color = rl.Color.red,
-            },
-        },
-        .map = try map.GameMap(100, 100).initMap(allocator),
-    };
-    return state;
-}
-
-fn update(state: *GameState) void {
-    const dt: f64 = state.deltaTime;
-    state.player.update(dt);
-}
-
-fn draw(state: *const GameState) void {
-    rl.beginDrawing();
-    defer rl.endDrawing();
-    rl.clearBackground(rl.Color.white);
-
-    state.map.draw();
-    state.player.shape.draw();
-}
-
 pub fn main() !void {
     const screenWidth = 800;
     const screenHeight = 800;
@@ -58,12 +61,13 @@ pub fn main() !void {
     std.debug.print("sizeof rect {}\n", .{@sizeOf(map.GameMap(100, 100))});
 
     rl.setTargetFPS(fps);
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
 
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    var arena = std.heap.ArenaAllocator.init(gpa.allocator());
     defer arena.deinit();
     const allocator = arena.allocator();
 
-    var state = try initGame(&allocator);
+    var state = try GameState.initGame(allocator);
     state.deltaTime = dt;
 
     var previousTime: i64 = std.time.microTimestamp();
@@ -73,12 +77,10 @@ pub fn main() !void {
         passedTime += @as(f64, @floatFromInt(currentTime - previousTime)) / @as(f64, 1000000.0);
         while (passedTime > 0) {
             previousTime = std.time.microTimestamp();
-            // std.debug.print("update\n", .{});
             passedTime -= dt;
-            update(&state);
+            state.update();
         }
 
-        // std.debug.print("draw\n", .{});
-        draw(&state);
+        state.draw();
     }
 }
