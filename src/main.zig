@@ -28,7 +28,7 @@ const GameState = struct {
         self.player.shape.draw();
     }
 
-    fn initGame(allocator: std.mem.Allocator) !GameState {
+    fn init(allocator: std.mem.Allocator) !GameState {
         return .{
             .deltaTime = 0.0,
             .player = .{
@@ -67,7 +67,7 @@ pub fn main() !void {
     defer arena.deinit();
     const allocator = arena.allocator();
 
-    var state = try GameState.initGame(allocator);
+    var state = try GameState.init(allocator);
     state.deltaTime = dt;
 
     var previousTime: i64 = std.time.microTimestamp();
