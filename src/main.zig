@@ -13,6 +13,9 @@ const GameState = struct {
     map: map.GameMap(),
     allocator: std.mem.Allocator,
 
+    // TODO update rate should be seperate from draw rate
+    // if setting fps too small then items could clip over the walls due to them just moving too many pixels at once
+    // the rate should be such that the maximum pixels passed by an object per update shouldnt exceed a blocks smallest width
     fn update(self: *Self) void {
         const dt: f64 = self.deltaTime;
         self.player.update(dt);
@@ -41,7 +44,7 @@ const GameState = struct {
                     .color = rl.Color.red,
                 },
             },
-            .map = try map.GameMap().initMap(allocator, 1000, 5000),
+            .map = try map.GameMap().initMap(allocator, 100, 100),
             .allocator = allocator,
         };
     }
@@ -59,9 +62,11 @@ pub fn main() !void {
     rl.initWindow(screenWidth, screenHeight, "raylib-zig [core] example - basic window");
     defer rl.closeWindow();
 
-    const fps = 165.0;
+    const fps = 60.0;
     const dt: f64 = 1.0 / fps;
 
+    // TODO figure out if this is even needed since we have a timer
+    // here already and we could sleep in our loop ourselves
     rl.setTargetFPS(fps);
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
@@ -70,13 +75,12 @@ pub fn main() !void {
     defer state.deInit();
     state.deltaTime = dt;
 
-    var previousTime: i64 = std.time.microTimestamp();
+    var timer = try std.time.Timer.start();
+
     var passedTime: f64 = 0.0;
     while (!rl.windowShouldClose()) {
-        const currentTime = std.time.microTimestamp();
-        passedTime += @as(f64, @floatFromInt(currentTime - previousTime)) / @as(f64, 1000000.0);
+        passedTime += @as(f64, @floatFromInt(timer.lap())) / @as(f64, std.time.ns_per_s);
         while (passedTime > 0) {
-            previousTime = std.time.microTimestamp();
             passedTime -= dt;
             state.update();
         }
