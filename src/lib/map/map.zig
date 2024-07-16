@@ -89,6 +89,7 @@ pub fn GameMap() type {
         const Self = @This();
         allocator: std.mem.Allocator,
         blocks: [][]Block,
+        towers: [][]bool, //temp
 
         pub fn draw(self: Self) void {
             for (self.blocks) |row| {
