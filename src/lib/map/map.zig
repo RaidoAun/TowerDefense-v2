@@ -137,3 +137,10 @@ pub fn GameMap() type {
         }
     };
 }
+
+test "test map memory allocation and deallocation" {
+    const allocator = std.testing.allocator;
+
+    const m = try GameMap().initMap(allocator, 200, 400);
+    defer m.deInit();
+}

@@ -88,9 +88,10 @@ pub fn main() !void {
         state.draw();
     }
 }
-test "test map memory allocation and deallocation" {
+
+test "test GameState.init()" {
     const allocator = std.testing.allocator;
 
-    const m = try map.GameMap().initMap(allocator, 200, 400);
-    m.deInit();
+    var state = try GameState.init(allocator);
+    defer state.deInit();
 }
