@@ -35,11 +35,15 @@ const Pattern = struct {
     fn smoothen(allocator: std.mem.Allocator, pattern: [][]bool, sizeX: MapSize, sizeY: MapSize, steps: u8) !void {
         if (steps == 0) return;
 
-        const result = try allocator.alloc([]bool, sizeY);
-        defer allocator.free(result);
+        var arena = std.heap.ArenaAllocator.init(allocator);
+        defer arena.deinit();
+
+        const arena_allocator = arena.allocator();
+
+        const result = try arena_allocator.alloc([]bool, sizeY);
 
         for (result) |*row| {
-            row.* = try allocator.alloc(bool, sizeX);
+            row.* = try arena_allocator.alloc(bool, sizeX);
         }
 
         var i: u8 = 0;
@@ -69,10 +73,6 @@ const Pattern = struct {
             for (0..sizeY) |y| {
                 @memcpy(pattern[y], result[y]);
             }
-        }
-
-        for (result) |row| {
-            allocator.free(row);
         }
     }
 
