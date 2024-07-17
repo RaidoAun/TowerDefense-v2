@@ -21,3 +21,8 @@ pub const Rectangle = struct {
         rl.drawRectangle(self.x, self.y, self.width, self.height, self.color);
     }
 };
+pub const Square = struct {
+    x: i32,
+    y: i32,
+    width: u16,
+};

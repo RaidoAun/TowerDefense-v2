@@ -1,21 +1,31 @@
 const shapes = @import("../shapes/shapes.zig");
+const rl = @import("raylib");
+const std = @import("std");
 
 pub const Type = enum {
     empty,
     wall,
+    basicTower,
 };
 
 pub const Block = struct {
     const Self = @This();
-    // TODO do not use Rectangle here
-    // to fully optimize this for memory only the type is needed
-    // if we assume width to be a constant then positions can be
-    // determined from the indexes at which they are in the maps
-    // slice of Blocks
-    shape: shapes.Rectangle,
+    shape: shapes.Square,
     type: Type,
 
     pub fn draw(self: Self) void {
-        self.shape.draw();
+        var color: rl.Color = undefined;
+        switch (self.type) {
+            .wall => |_| {
+                color = rl.Color.black;
+            },
+            .empty => |_| {
+                color = rl.Color.white;
+            },
+            .basicTower => |_| {
+                color = rl.Color.yellow;
+            },
+        }
+        rl.drawRectangle(self.shape.x, self.shape.y, self.shape.width, self.shape.width, color);
     }
 };
