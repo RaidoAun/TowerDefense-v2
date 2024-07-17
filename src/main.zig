@@ -28,7 +28,8 @@ const GameState = struct {
         rl.clearBackground(rl.Color.white);
 
         self.map.draw();
-        // self.player.shape.draw();
+        rl.drawFPS(100, 100);
+        self.player.shape.draw();
     }
 
     fn init(allocator: std.mem.Allocator) !GameState {
@@ -44,12 +45,12 @@ const GameState = struct {
                     .color = rl.Color.red,
                 },
             },
-            .map = try map.GameMap().initMap(allocator, 100, 100),
+            .map = try map.GameMap().initMap(allocator, 100, 500),
             .allocator = allocator,
         };
     }
 
-    fn deInit(self: Self) void {
+    fn deInit(self: *Self) void {
         self.map.deInit();
     }
 };
@@ -74,6 +75,8 @@ pub fn main() !void {
     var state = try GameState.init(allocator);
     defer state.deInit();
     state.deltaTime = dt;
+
+    try state.map.createTower(200, 200);
 
     var timer = try std.time.Timer.start();
 

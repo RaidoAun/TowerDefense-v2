@@ -1,6 +1,8 @@
 const std = @import("std");
 const shapes = @import("../shapes/shapes.zig");
 const block = @import("../objects/block.zig");
+const towers = @import("../objects/tower.zig");
+const Tower = towers.Tower;
 const Block = block.Block;
 const rl = @import("raylib");
 
@@ -88,8 +90,9 @@ pub fn GameMap() type {
     return struct {
         const Self = @This();
         allocator: std.mem.Allocator,
-        blocks: [][]Block,
-        towers: [][]bool, //temp
+        blocks: [][]Block, // only for drawing
+        towers: std.AutoArrayHashMap(BlockIndexes, Tower),
+        const block_size = 20;
 
         pub fn draw(self: Self) void {
             for (self.blocks) |row| {
@@ -100,8 +103,11 @@ pub fn GameMap() type {
         }
 
         pub fn initMap(allocator: std.mem.Allocator, sizeX: MapSize, sizeY: MapSize) !GameMap() {
-            const block_size = 5;
             const blocks = try allocator.alloc([]Block, sizeY);
+
+            // std.debug.print("sizeof tower {}\n", .{@sizeOf(Block)});
+            // std.debug.print("sizeof rec {}\n", .{@sizeOf(shapes.Rectangle)});
+            // std.debug.print("sizeof sq {}\n", .{@sizeOf(shapes.Square)});
 
             // TODO probably can use FixedBufferAllocator here
             const pattern = try Pattern.init(allocator, sizeX, sizeY, 3);
@@ -112,12 +118,10 @@ pub fn GameMap() type {
                 for (row.*, 0..) |*b, j| {
                     const is_wall = pattern.data[i][j];
                     b.* = .{
-                        .shape = shapes.Rectangle{
+                        .shape = shapes.Square{
                             .x = @intCast(block_size * j),
                             .y = @intCast(block_size * i),
                             .width = block_size,
-                            .height = block_size,
-                            .color = if (is_wall) rl.Color.black else rl.Color.white,
                         },
                         .type = if (is_wall) block.Type.wall else block.Type.empty,
                     };
@@ -127,14 +131,36 @@ pub fn GameMap() type {
             return .{
                 .blocks = blocks,
                 .allocator = allocator,
+                .towers = std.AutoArrayHashMap(BlockIndexes, Tower).init(allocator),
             };
         }
 
-        pub fn deInit(self: Self) void {
+        pub fn deInit(self: *Self) void {
             for (self.blocks) |row| {
                 self.allocator.free(row);
             }
             self.allocator.free(self.blocks);
+            self.towers.deinit();
+        }
+
+        const BlockIndexes = struct {
+            x: u16,
+            y: u16,
+        };
+
+        pub fn getBlockIndexesWithCoords(x: i32, y: i32) BlockIndexes {
+            return .{
+                .x = @intCast(@divFloor(x, block_size)),
+                .y = @intCast(@divFloor(y, block_size)),
+            };
+        }
+
+        pub fn createTower(self: *Self, x: i32, y: i32) !void {
+            const indexes = getBlockIndexesWithCoords(x, y);
+            try self.towers.putNoClobber(indexes, .{
+                .basic = towers.BasicTurret.init(self.allocator, indexes.x * block_size, indexes.y * block_size),
+            });
+            self.blocks[indexes.y][indexes.x].type = block.Type.basicTower;
         }
     };
 }
