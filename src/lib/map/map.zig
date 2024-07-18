@@ -4,6 +4,9 @@ const block = @import("../objects/block.zig");
 const towers = @import("../objects/tower.zig");
 const Tower = towers.Tower;
 const Block = block.Block;
+const monsters = @import("../objects/monster.zig");
+const Monster = monsters.Monster;
+const input = @import("../input.zig");
 const rl = @import("raylib");
 
 const MapSize = u32;
@@ -92,6 +95,8 @@ pub fn GameMap() type {
         allocator: std.mem.Allocator,
         blocks: [][]Block, // only for drawing
         towers: std.AutoArrayHashMap(BlockIndexes, Tower),
+        monsters: std.ArrayList(Monster),
+
         const block_size = 20;
 
         pub fn draw(self: Self) void {
@@ -99,6 +104,29 @@ pub fn GameMap() type {
                 for (row) |b| {
                     b.draw();
                 }
+            }
+
+            for (self.monsters.items) |m| {
+                m.draw();
+            }
+            for (self.towers.values()) |t| {
+                t.draw();
+            }
+        }
+
+        pub fn update(self: *Self) !void {
+            for (self.monsters.items) |*m| {
+                m.update();
+            }
+            for (self.towers.values()) |*t| {
+                try t.update();
+            }
+
+            if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left)) {
+                try self.createTower(input.getMousePosition());
+            }
+            if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_right)) {
+                try self.createMonster(input.getMousePosition());
             }
         }
 
@@ -132,6 +160,7 @@ pub fn GameMap() type {
                 .blocks = blocks,
                 .allocator = allocator,
                 .towers = std.AutoArrayHashMap(BlockIndexes, Tower).init(allocator),
+                .monsters = std.ArrayList(Monster).init(allocator),
             };
         }
 
@@ -141,6 +170,7 @@ pub fn GameMap() type {
             }
             self.allocator.free(self.blocks);
             self.towers.deinit();
+            self.monsters.deinit();
         }
 
         const BlockIndexes = struct {
@@ -155,12 +185,29 @@ pub fn GameMap() type {
             };
         }
 
-        pub fn createTower(self: *Self, x: i32, y: i32) !void {
+        fn createTower(self: *Self, pos: input.Position) !void {
+            const x = pos.x;
+            const y = pos.y;
             const indexes = getBlockIndexesWithCoords(x, y);
             try self.towers.putNoClobber(indexes, .{
                 .basic = towers.BasicTurret.init(self.allocator, indexes.x * block_size, indexes.y * block_size),
             });
             self.blocks[indexes.y][indexes.x].type = block.Type.basicTower;
+        }
+
+        fn createMonster(self: *Self, pos: input.Position) !void {
+            const x = pos.x;
+            const y = pos.y;
+            try self.monsters.append(.{
+                .basic = .{
+                    .base = .{
+                        .x = x,
+                        .y = y,
+                        .hp = 100,
+                        .speed = 5,
+                    },
+                },
+            });
         }
     };
 }
@@ -168,6 +215,6 @@ pub fn GameMap() type {
 test "test map memory allocation and deallocation" {
     const allocator = std.testing.allocator;
 
-    const m = try GameMap().initMap(allocator, 200, 400);
+    var m = try GameMap().initMap(allocator, 200, 400);
     defer m.deInit();
 }
