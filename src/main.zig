@@ -16,9 +16,10 @@ const GameState = struct {
     // TODO update rate should be seperate from draw rate
     // if setting fps too small then items could clip over the walls due to them just moving too many pixels at once
     // the rate should be such that the maximum pixels passed by an object per update shouldnt exceed a blocks smallest width
-    fn update(self: *Self) void {
+    fn update(self: *Self) !void {
         const dt: f64 = self.deltaTime;
         self.player.update(dt);
+        try self.map.update();
     }
 
     fn draw(self: Self) void {
@@ -32,20 +33,20 @@ const GameState = struct {
         self.player.shape.draw();
     }
 
-    fn init(allocator: std.mem.Allocator) !GameState {
+    fn init(allocator: std.mem.Allocator, dt: f64) !GameState {
         return .{
-            .deltaTime = 0.0,
+            .deltaTime = dt,
             .player = .{
                 .speed = 500,
                 .shape = .{
                     .x = 400,
                     .y = 225,
-                    .width = 200,
+                    .width = 100,
                     .height = 20,
                     .color = rl.Color.red,
                 },
             },
-            .map = try map.GameMap().initMap(allocator, 100, 500),
+            .map = try map.GameMap().initMap(allocator, 20, 20),
             .allocator = allocator,
         };
     }
@@ -54,13 +55,14 @@ const GameState = struct {
         self.map.deInit();
     }
 };
-
 // TODO make deinit func, also use maps deinit there
 pub fn main() !void {
     const screenWidth = 800;
     const screenHeight = 800;
 
     rl.initWindow(screenWidth, screenHeight, "raylib-zig [core] example - basic window");
+    // std.debug.print("sizeof 1 {}\n", .{@sizeOf(rl.MouseButton)});
+    // std.debug.print("sizeof 2 {}\n", .{@sizeOf(MouseInput)});
     defer rl.closeWindow();
 
     const fps = 60.0;
@@ -72,11 +74,8 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
 
-    var state = try GameState.init(allocator);
+    var state = try GameState.init(allocator, dt);
     defer state.deInit();
-    state.deltaTime = dt;
-
-    try state.map.createTower(200, 200);
 
     var timer = try std.time.Timer.start();
 
@@ -85,7 +84,7 @@ pub fn main() !void {
         passedTime += @as(f64, @floatFromInt(timer.lap())) / @as(f64, std.time.ns_per_s);
         while (passedTime > 0) {
             passedTime -= dt;
-            state.update();
+            try state.update();
         }
 
         state.draw();
@@ -93,8 +92,10 @@ pub fn main() !void {
 }
 
 test "test GameState.init()" {
+    const fps = 60.0;
+    const dt: f64 = 1.0 / fps;
     const allocator = std.testing.allocator;
 
-    var state = try GameState.init(allocator);
+    var state = try GameState.init(allocator, dt);
     defer state.deInit();
 }
