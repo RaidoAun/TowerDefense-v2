@@ -11,6 +11,9 @@ const rl = @import("raylib");
 
 const MapSize = u32;
 
+const Error = error{
+    OutsideMapBounds,
+};
 const Pattern = struct {
     const Self = @This();
     data: [][]bool,
@@ -123,7 +126,9 @@ pub fn GameMap() type {
             }
 
             if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left)) {
-                try self.createTower(input.getMousePosition());
+                if (try self.getOrCreateTower(input.getMousePosition())) |tower| {
+                    std.debug.print("tower: {}\n", .{tower.*});
+                }
             }
             if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_right)) {
                 try self.createMonster(input.getMousePosition());
@@ -185,14 +190,21 @@ pub fn GameMap() type {
             };
         }
 
-        fn createTower(self: *Self, pos: input.Position) !void {
-            const x = pos.x;
-            const y = pos.y;
-            const indexes = getBlockIndexesWithCoords(x, y);
-            try self.towers.putNoClobber(indexes, .{
+        fn getOrCreateTower(self: *Self, pos: input.Position) !?*Tower {
+            const indexes = getBlockIndexesWithCoords(pos.x, pos.y);
+            if (indexes.y >= self.blocks.len or indexes.x >= self.blocks.len) {
+                return error.OutsideMapBounds;
+            }
+
+            const result = try self.towers.getOrPutValue(indexes, .{
                 .basic = towers.BasicTurret.init(self.allocator, indexes.x * block_size, indexes.y * block_size),
             });
+            if (result.found_existing) {
+                return result.value_ptr;
+            }
+
             self.blocks[indexes.y][indexes.x].type = block.Type.basicTower;
+            return null;
         }
 
         fn createMonster(self: *Self, pos: input.Position) !void {
@@ -217,4 +229,40 @@ test "test map memory allocation and deallocation" {
 
     var m = try GameMap().initMap(allocator, 200, 400);
     defer m.deInit();
+}
+
+test "creating towers on map" {
+    const allocator = std.testing.allocator;
+
+    var m = try GameMap().initMap(allocator, 10, 10);
+    defer m.deInit();
+
+    try std.testing.expect(m.towers.values().len == 0);
+
+    const t = try m.getOrCreateTower(.{
+        .x = 20,
+        .y = 20,
+    });
+
+    try std.testing.expect(t == null);
+
+    try std.testing.expect(m.towers.values().len == 1);
+
+    const coords = GameMap().getBlockIndexesWithCoords(20, 20);
+    try std.testing.expect(m.blocks[coords.y][coords.x].type == block.Type.basicTower);
+    const t2 = try m.getOrCreateTower(.{
+        .x = 20,
+        .y = 20,
+    });
+    try std.testing.expect(t2 != null);
+    try std.testing.expect(m.towers.values().len == 1);
+}
+
+test "creating towers outside map bounds does not panic" {
+    const allocator = std.testing.allocator;
+
+    var m = try GameMap().initMap(allocator, 1, 1);
+    defer m.deInit();
+
+    try std.testing.expectError(Error.OutsideMapBounds, m.getOrCreateTower(.{ .x = 50, .y = 50 }));
 }
