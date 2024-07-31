@@ -109,13 +109,17 @@ const Pattern = struct {
     }
 };
 
+pub fn MonsterList() type {
+    return std.ArrayList(Monster);
+}
+
 pub fn GameMap() type {
     return struct {
         const Self = @This();
         allocator: std.mem.Allocator,
         blocks: [][]Block, // only for drawing
         towers: std.AutoArrayHashMap(BlockIndexes, Tower),
-        monsters: std.ArrayList(Monster),
+        monsters: MonsterList(),
         bounds: Bounds,
 
         const block_size = 20;
@@ -140,7 +144,7 @@ pub fn GameMap() type {
                 m.update();
             }
             for (self.towers.values()) |*t| {
-                try t.update(self.bounds);
+                try t.update(self.bounds, &self.monsters);
             }
 
             if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left)) {

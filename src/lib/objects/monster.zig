@@ -1,6 +1,6 @@
 const rl = @import("raylib");
 
-const monster_radius = 10;
+pub const monster_radius = 10;
 
 pub const Monster = union(enum) {
     const Self = @This();
@@ -9,7 +9,7 @@ pub const Monster = union(enum) {
     pub fn update(self: *Self) void {
         switch (self.*) {
             .basic => |*v| {
-                v.base.x += 1;
+                v.base.x += 0;
             },
         }
     }
@@ -19,6 +19,12 @@ pub const Monster = union(enum) {
                 rl.drawCircle(v.base.x, v.base.y, monster_radius, rl.Color.green);
             },
         }
+    }
+
+    pub fn getBase(self: *Self) *Base {
+        return switch (self.*) {
+            .basic => |*v| &v.base,
+        };
     }
 };
 const Base = struct {
