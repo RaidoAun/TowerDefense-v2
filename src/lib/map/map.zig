@@ -5,6 +5,7 @@ const towers = @import("../objects/tower.zig");
 const Tower = towers.Tower;
 const Block = block.Block;
 const monsters = @import("../objects/monster.zig");
+const object_types = @import("../objects/types.zig");
 const Monster = monsters.Monster;
 const input = @import("../input.zig");
 const rl = @import("raylib");
@@ -16,18 +17,13 @@ const Error = error{
     OutsideMapBounds,
 };
 
-pub const Point = struct {
-    x: i32,
-    y: i32,
-};
-
 pub const Bounds = struct {
     const Self = @This();
-    size_x: MapPixelSize,
-    size_y: MapPixelSize,
+    size_x: object_types.Position.T,
+    size_y: object_types.Position.T,
 
-    pub fn isOutsideBounds(self: Self, point: Point) bool {
-        return point.x < 0 or point.x > self.size_x or point.y < 0 or point.y > self.size_y;
+    pub fn isObjectOutsideBounds(self: Self, pos: object_types.Position) bool {
+        return pos.x < 0 or pos.x > self.size_x or pos.y < 0 or pos.y > self.size_y;
     }
 };
 
@@ -189,8 +185,8 @@ pub fn GameMap() type {
                 .towers = std.AutoArrayHashMap(BlockIndexes, Tower).init(allocator),
                 .monsters = std.ArrayList(Monster).init(allocator),
                 .bounds = .{
-                    .size_x = @intCast(blocks.len * block_size),
-                    .size_y = @intCast(blocks.len * block_size),
+                    .size_x = @floatFromInt(blocks.len * block_size),
+                    .size_y = @floatFromInt(blocks.len * block_size),
                 },
             };
         }
@@ -234,13 +230,16 @@ pub fn GameMap() type {
         }
 
         fn createMonster(self: *Self, pos: input.Position) !void {
-            const x = pos.x;
-            const y = pos.y;
+            const x = @as(object_types.Position.T, @floatFromInt(pos.x));
+            const y = @as(object_types.Position.T, @floatFromInt(pos.y));
             try self.monsters.append(.{
                 .basic = .{
                     .base = .{
-                        .x = x,
-                        .y = y,
+                        .pos = .{
+                            .x = x,
+                            .y = y,
+                        },
+
                         .hp = 100,
                         .speed = 5,
                     },

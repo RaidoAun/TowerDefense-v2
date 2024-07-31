@@ -2,8 +2,8 @@ const shapes = @import("../shapes/shapes.zig");
 const map = @import("../map/map.zig");
 const monster_radius = @import("../objects/monster.zig").monster_radius;
 const MapBounds = map.Bounds;
-const MapPoint = map.Point;
 const MonsterList = map.MonsterList();
+const object_types = @import("../objects/types.zig");
 const std = @import("std");
 const rl = @import("raylib");
 
@@ -116,7 +116,7 @@ pub const BasicTurret = struct {
             var bullet = &self.bullets.items[@intCast(i)];
             bullet.base.update();
 
-            if (map_bounds.isOutsideBounds(.{ .x = @intFromFloat(bullet.base.x), .y = @intFromFloat(bullet.base.y) })) {
+            if (map_bounds.isObjectOutsideBounds(.{ .x = bullet.base.x, .y = bullet.base.y })) {
                 _ = self.bullets.swapRemove(@intCast(i));
                 continue;
             }
@@ -132,7 +132,7 @@ pub const BasicTurret = struct {
         var i: i32 = @as(i32, @intCast(monsters.items.len)) - 1;
         while (i >= 0) : (i -= 1) {
             var monster_base = monsters.items[@intCast(i)].getBase();
-            if (distanceBetweenPoints(.{ .x = monster_base.x, .y = monster_base.y }, .{ .x = @intFromFloat(bullet.base.x), .y = @intFromFloat(bullet.base.y) }) < monster_radius + bullet_radius) {
+            if (object_types.Position.distanceBetween(.{ .x = monster_base.pos.x, .y = monster_base.pos.y }, .{ .x = bullet.base.x, .y = bullet.base.y }) < monster_radius + bullet_radius) {
                 const sub = @subWithOverflow(monster_base.hp, bullet.damage);
                 const isOverflow = sub[1] == 1;
                 if (isOverflow or sub[0] == 0) {
@@ -147,10 +147,6 @@ pub const BasicTurret = struct {
         return false;
     }
 };
-
-fn distanceBetweenPoints(p1: MapPoint, p2: MapPoint) f32 {
-    return @sqrt(@as(f32, @floatFromInt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y))));
-}
 
 pub const Laser = struct {
     base: BaseTower,
