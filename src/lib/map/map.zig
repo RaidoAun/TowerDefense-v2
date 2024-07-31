@@ -9,10 +9,26 @@ const Monster = monsters.Monster;
 const input = @import("../input.zig");
 const rl = @import("raylib");
 
-const MapSize = u32;
+pub const MapIndexSize = u32;
+pub const MapPixelSize = u32;
 
 const Error = error{
     OutsideMapBounds,
+};
+
+pub const Point = struct {
+    x: i32,
+    y: i32,
+};
+
+pub const Bounds = struct {
+    const Self = @This();
+    size_x: MapPixelSize,
+    size_y: MapPixelSize,
+
+    pub fn isOutsideBounds(self: Self, point: Point) bool {
+        return point.x < 0 or point.x > self.size_x or point.y < 0 or point.y > self.size_y;
+    }
 };
 
 const Pattern = struct {
@@ -20,7 +36,7 @@ const Pattern = struct {
     data: [][]bool,
     allocator: std.mem.Allocator,
 
-    fn init(allocator: std.mem.Allocator, sizeX: MapSize, sizeY: MapSize, steps: u8) !Pattern {
+    fn init(allocator: std.mem.Allocator, sizeX: MapIndexSize, sizeY: MapIndexSize, steps: u8) !Pattern {
         var random = std.Random.DefaultPrng.init(0);
 
         const data = try allocator.alloc([]bool, sizeY);
@@ -41,7 +57,7 @@ const Pattern = struct {
     }
 
     // TODO this could surely be optimized
-    fn smoothen(allocator: std.mem.Allocator, pattern: [][]bool, sizeX: MapSize, sizeY: MapSize, steps: u8) !void {
+    fn smoothen(allocator: std.mem.Allocator, pattern: [][]bool, sizeX: MapIndexSize, sizeY: MapIndexSize, steps: u8) !void {
         if (steps == 0) return;
 
         var arena = std.heap.ArenaAllocator.init(allocator);
@@ -100,6 +116,7 @@ pub fn GameMap() type {
         blocks: [][]Block, // only for drawing
         towers: std.AutoArrayHashMap(BlockIndexes, Tower),
         monsters: std.ArrayList(Monster),
+        bounds: Bounds,
 
         const block_size = 20;
 
@@ -123,7 +140,7 @@ pub fn GameMap() type {
                 m.update();
             }
             for (self.towers.values()) |*t| {
-                try t.update();
+                try t.update(self.bounds);
             }
 
             if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left)) {
@@ -136,7 +153,7 @@ pub fn GameMap() type {
             }
         }
 
-        pub fn initMap(allocator: std.mem.Allocator, sizeX: MapSize, sizeY: MapSize) !GameMap() {
+        pub fn initMap(allocator: std.mem.Allocator, sizeX: MapIndexSize, sizeY: MapIndexSize) !GameMap() {
             const blocks = try allocator.alloc([]Block, sizeY);
 
             // std.debug.print("sizeof tower {}\n", .{@sizeOf(Block)});
@@ -167,6 +184,10 @@ pub fn GameMap() type {
                 .allocator = allocator,
                 .towers = std.AutoArrayHashMap(BlockIndexes, Tower).init(allocator),
                 .monsters = std.ArrayList(Monster).init(allocator),
+                .bounds = .{
+                    .size_x = @intCast(blocks.len * block_size),
+                    .size_y = @intCast(blocks.len * block_size),
+                },
             };
         }
 
