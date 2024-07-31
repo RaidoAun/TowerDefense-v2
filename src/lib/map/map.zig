@@ -14,6 +14,7 @@ const MapSize = u32;
 const Error = error{
     OutsideMapBounds,
 };
+
 const Pattern = struct {
     const Self = @This();
     data: [][]bool,

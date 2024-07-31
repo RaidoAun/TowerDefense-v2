@@ -5,6 +5,8 @@ const std = @import("std");
 pub const Type = enum {
     empty,
     wall,
+    // TODO maybe make drawing of towers do nothing here?
+    // then a generic type for towers could be added here instead.
     basicTower,
 };
 

@@ -55,14 +55,11 @@ const GameState = struct {
         self.map.deInit();
     }
 };
-// TODO make deinit func, also use maps deinit there
 pub fn main() !void {
     const screenWidth = 800;
     const screenHeight = 800;
 
     rl.initWindow(screenWidth, screenHeight, "raylib-zig [core] example - basic window");
-    // std.debug.print("sizeof 1 {}\n", .{@sizeOf(rl.MouseButton)});
-    // std.debug.print("sizeof 2 {}\n", .{@sizeOf(MouseInput)});
     defer rl.closeWindow();
 
     const fps = 60.0;
