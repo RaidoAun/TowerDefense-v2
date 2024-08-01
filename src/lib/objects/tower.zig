@@ -53,9 +53,8 @@ const BulletBase = struct {
 };
 
 const BaseTower = struct {
-    // assume these to be the center of the tower
-    x: i32,
-    y: i32,
+    // assume this to be the center of the tower
+    pos: object_types.Position,
     level: u16,
 };
 
@@ -72,11 +71,10 @@ pub const BasicTurret = struct {
         damage: u16,
     };
 
-    pub fn init(allocator: std.mem.Allocator, x: i32, y: i32) BasicTurret {
+    pub fn init(allocator: std.mem.Allocator, pos: object_types.Position) BasicTurret {
         return .{
             .base = .{
-                .x = x,
-                .y = y,
+                .pos = pos,
                 .level = 0,
             },
             .bullets = std.ArrayList(Bullet).init(allocator),
@@ -93,8 +91,8 @@ pub const BasicTurret = struct {
         if (self.attack_tick == attack_cooldown_ticks) {
             try self.bullets.append(.{
                 .base = .{
-                    .x = @floatFromInt(self.base.x),
-                    .y = @floatFromInt(self.base.y),
+                    .x = self.base.pos.x,
+                    .y = self.base.pos.y,
                     .vector = .{
                         .x = 1.0,
                         .y = 2.0,

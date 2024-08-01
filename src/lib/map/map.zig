@@ -217,9 +217,13 @@ pub fn GameMap() type {
             if (indexes.y >= self.blocks.len or indexes.x >= self.blocks.len) {
                 return error.OutsideMapBounds;
             }
+            const tower_pos = object_types.Position{
+                .x = @as(object_types.Position.T, @floatFromInt(indexes.x * block_size)) + @as(object_types.Position.T, block_size) / 2,
+                .y = @as(object_types.Position.T, @floatFromInt(indexes.y * block_size)) + @as(object_types.Position.T, block_size) / 2,
+            };
 
             const result = try self.towers.getOrPutValue(indexes, .{
-                .basic = towers.BasicTurret.init(self.allocator, indexes.x * block_size, indexes.y * block_size),
+                .basic = towers.BasicTurret.init(self.allocator, tower_pos),
             });
             if (result.found_existing) {
                 return result.value_ptr;
