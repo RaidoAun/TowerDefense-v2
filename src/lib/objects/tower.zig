@@ -28,7 +28,7 @@ pub const Tower = union(enum) {
         switch (self) {
             .basic => |v| {
                 for (v.bullets.items) |b| {
-                    rl.drawCircle(@intFromFloat(b.base.x), @intFromFloat(b.base.y), bullet_radius, rl.Color.blue);
+                    rl.drawCircle(@intFromFloat(b.base.pos.x), @intFromFloat(b.base.pos.y), bullet_radius, rl.Color.blue);
                 }
             },
             .laser => |_| {},
@@ -42,13 +42,12 @@ const BulletBase = struct {
         x: f32,
         y: f32,
     };
-    x: f32,
-    y: f32,
+    pos: object_types.Position,
     vector: Vector,
 
     fn update(self: *Self) void {
-        self.x += self.vector.x;
-        self.y += self.vector.y;
+        self.pos.x += self.vector.x;
+        self.pos.y += self.vector.y;
     }
 };
 
@@ -91,8 +90,7 @@ pub const BasicTurret = struct {
         if (self.attack_tick == attack_cooldown_ticks) {
             try self.bullets.append(.{
                 .base = .{
-                    .x = self.base.pos.x,
-                    .y = self.base.pos.y,
+                    .pos = self.base.pos,
                     .vector = .{
                         .x = 1.0,
                         .y = 2.0,
@@ -114,7 +112,7 @@ pub const BasicTurret = struct {
             var bullet = &self.bullets.items[@intCast(i)];
             bullet.base.update();
 
-            if (map_bounds.isObjectOutsideBounds(.{ .x = bullet.base.x, .y = bullet.base.y })) {
+            if (map_bounds.isObjectOutsideBounds(bullet.base.pos)) {
                 _ = self.bullets.swapRemove(@intCast(i));
                 continue;
             }
@@ -130,7 +128,7 @@ pub const BasicTurret = struct {
         var i: i32 = @as(i32, @intCast(monsters.items.len)) - 1;
         while (i >= 0) : (i -= 1) {
             var monster_base = monsters.items[@intCast(i)].getBase();
-            if (object_types.Position.distanceBetween(.{ .x = monster_base.pos.x, .y = monster_base.pos.y }, .{ .x = bullet.base.x, .y = bullet.base.y }) < monster_radius + bullet_radius) {
+            if (object_types.Position.distanceBetween(monster_base.pos, bullet.base.pos) < monster_radius + bullet_radius) {
                 const sub = @subWithOverflow(monster_base.hp, bullet.damage);
                 const isOverflow = sub[1] == 1;
                 if (isOverflow or sub[0] == 0) {
