@@ -20,4 +20,5 @@ https://kristoff.it/blog/improving-your-zls-experience/
 
 ### Learning materials
 https://ziglang.org/learn/  
+https://www.openmymind.net/learning_zig/  
 https://codeberg.org/ziglings/exercises/  
