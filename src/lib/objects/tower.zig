@@ -9,6 +9,7 @@ const rl = @import("raylib");
 
 const bullet_radius = 5;
 
+// TODO consider using Struct of Arrays for this.
 pub const Tower = union(enum) {
     const Self = @This();
     basic: BasicTurret,
