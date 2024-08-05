@@ -46,12 +46,8 @@ pub const Tower = union(enum) {
 
 const BulletBase = struct {
     const Self = @This();
-    const Vector = struct {
-        x: f32,
-        y: f32,
-    };
     pos: object_types.Position,
-    vector: Vector,
+    vector: object_types.Vector,
 
     fn update(self: *Self) void {
         self.pos.x += self.vector.x;
