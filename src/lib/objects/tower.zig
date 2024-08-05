@@ -57,9 +57,49 @@ const BulletBase = struct {
 };
 
 const BaseTower = struct {
+    const Self = @This();
+    pub const Selection = enum {
+        close,
+        far,
+    };
     // assume this to be the center of the tower
     pos: object_types.Position,
     level: u16,
+    range: f32,
+    target_selection: Selection,
+
+    fn getMonsterInRangeClosest(self: Self, monsters: *MonsterList) ?*Monster {
+        var result: ?*Monster = null;
+        var closestDist = self.range;
+        for (monsters.items) |*m| {
+            const dist = m.getBase().pos.distanceTo(self.pos);
+            if (dist < closestDist) {
+                closestDist = dist;
+                result = m;
+            }
+        }
+        return result;
+    }
+
+    fn getMonsterInRangeFarthest(self: Self, monsters: *MonsterList) ?*Monster {
+        var result: ?*Monster = null;
+        var x: object_types.Position.T = 0;
+        for (monsters.items) |*m| {
+            const dist = m.getBase().pos.distanceTo(self.pos);
+            if (dist < self.range and dist > x) {
+                x = dist;
+                result = m;
+            }
+        }
+        return result;
+    }
+
+    fn getTarget(self: Self, monsters: *MonsterList, selection: Selection) ?*Monster {
+        return switch (selection) {
+            .close => self.getMonsterInRangeClosest(monsters),
+            .far => self.getMonsterInRangeFarthest(monsters),
+        };
+    }
 };
 
 pub const BasicTurret = struct {
@@ -68,7 +108,6 @@ pub const BasicTurret = struct {
     const bullet_speed = 3;
     base: BaseTower,
     bullets: std.ArrayList(Bullet),
-    range: f32,
     attack_tick: u8,
 
     const Bullet = struct {
@@ -81,9 +120,10 @@ pub const BasicTurret = struct {
             .base = .{
                 .pos = pos,
                 .level = 0,
+                .range = 3.0 * block_size,
+                .target_selection = .close,
             },
             .bullets = std.ArrayList(Bullet).init(allocator),
-            .range = 3.0 * block_size,
             .attack_tick = 0,
         };
     }
@@ -92,22 +132,9 @@ pub const BasicTurret = struct {
         self.bullets.deinit();
     }
 
-    fn getMonsterInRangeClosest(self: Self, monsters: *MonsterList) ?*Monster {
-        var result: ?*Monster = null;
-        var closestDist = self.range;
-        for (monsters.items) |*m| {
-            const dist = m.getBase().pos.distanceTo(self.base.pos);
-            if (dist < closestDist) {
-                closestDist = dist;
-                result = m;
-            }
-        }
-        return result;
-    }
-
     fn update(self: *Self, map_bounds: MapBounds, monsters: *MonsterList) !void {
         if (self.attack_tick == attack_cooldown_ticks) {
-            if (self.getMonsterInRangeClosest(monsters)) |m| {
+            if (self.base.getTarget(monsters, self.base.target_selection)) |m| {
                 const vector = self.base.pos.vectorTo(m.getBase().pos).withLength(bullet_speed);
 
                 try self.bullets.append(.{
