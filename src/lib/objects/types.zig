@@ -13,7 +13,10 @@ pub const Vector = struct {
 
     pub fn normalize(self: Self) Vector {
         const len = self.length();
-        if (len == 0) return self; // Avoid division by zero
+        // If this happens at runtime (it can but maybe it never will)
+        // then just make it either be a default value
+        // or return an error and let the caller handle it.
+        std.debug.assert(len != 0);
         return Vector{
             .x = self.x / len,
             .y = self.y / len,

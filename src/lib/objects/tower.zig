@@ -207,7 +207,7 @@ test "allocation and free of basicturret" {
 
     var m = try map.GameMap().initMap(allocator, 10, 10);
     defer m.deInit();
-    try m.createMonster(.{ .x = 10, .y = 10 });
+    try m.createMonster(.{ .x = 11, .y = 11 });
     _ = try m.getOrCreateTower(.{ .x = 15, .y = 15 });
     var i: i32 = 0;
 
