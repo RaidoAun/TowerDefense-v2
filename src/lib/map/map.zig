@@ -195,6 +195,9 @@ pub fn GameMap() type {
                 self.allocator.free(row);
             }
             self.allocator.free(self.blocks);
+            for (self.towers.values()) |tower| {
+                tower.deinit();
+            }
             self.towers.deinit();
             self.monsters.deinit();
         }

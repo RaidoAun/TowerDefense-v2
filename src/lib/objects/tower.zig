@@ -34,6 +34,14 @@ pub const Tower = union(enum) {
             .laser => |_| {},
         }
     }
+    pub fn deinit(self: Self) void {
+        switch (self) {
+            .basic => |v| {
+                v.deinit();
+            },
+            .laser => |_| {},
+        }
+    }
 };
 
 const BulletBase = struct {
