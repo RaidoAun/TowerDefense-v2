@@ -54,6 +54,10 @@ const BulletBase = struct {
         self.pos.x += self.vector.x;
         self.pos.y += self.vector.y;
     }
+
+    fn isOutsideMap(self: Self, map_bounds: MapBounds) bool {
+        return map_bounds.isObjectOutsideBounds(self.pos);
+    }
 };
 
 const BaseTower = struct {
@@ -159,7 +163,7 @@ pub const BasicTurret = struct {
             var bullet = &self.bullets.items[@intCast(i)];
             bullet.base.update();
 
-            if (map_bounds.isObjectOutsideBounds(bullet.base.pos)) {
+            if (bullet.base.isOutsideMap(map_bounds)) {
                 _ = self.bullets.swapRemove(@intCast(i));
                 continue;
             }
