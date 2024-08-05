@@ -154,3 +154,17 @@ pub const BasicTurret = struct {
 pub const Laser = struct {
     base: BaseTower,
 };
+
+test "allocation and free of basicturret" {
+    const allocator = std.testing.allocator;
+
+    var m = try map.GameMap().initMap(allocator, 10, 10);
+    defer m.deInit();
+    try m.createMonster(.{ .x = 10, .y = 10 });
+    _ = try m.getOrCreateTower(.{ .x = 15, .y = 15 });
+    var i: i32 = 0;
+
+    while (i < 1000) : (i += 1) {
+        try m.update();
+    }
+}

@@ -211,7 +211,7 @@ pub fn GameMap() type {
             };
         }
 
-        fn getOrCreateTower(self: *Self, pos: input.Position) !?*Tower {
+        pub fn getOrCreateTower(self: *Self, pos: input.Position) !?*Tower {
             const indexes = getBlockIndexesWithCoords(pos.x, pos.y);
             if (indexes.y >= self.blocks.len or indexes.x >= self.blocks.len) {
                 return error.OutsideMapBounds;
@@ -232,7 +232,7 @@ pub fn GameMap() type {
             return null;
         }
 
-        fn createMonster(self: *Self, pos: input.Position) !void {
+        pub fn createMonster(self: *Self, pos: input.Position) !void {
             const x = @as(object_types.Position.T, @floatFromInt(pos.x));
             const y = @as(object_types.Position.T, @floatFromInt(pos.y));
             try self.monsters.append(.{
