@@ -1,6 +1,7 @@
 const shapes = @import("../shapes/shapes.zig");
 const map = @import("../map/map.zig");
 const monster_radius = @import("../objects/monster.zig").monster_radius;
+const Monster = @import("../objects/monster.zig").Monster;
 const MapBounds = map.Bounds;
 const MonsterList = map.MonsterList();
 const object_types = @import("../objects/types.zig");
@@ -64,9 +65,10 @@ const BaseTower = struct {
 pub const BasicTurret = struct {
     const Self = @This();
     const attack_cooldown_ticks = 60;
+    const bullet_speed = 3;
     base: BaseTower,
     bullets: std.ArrayList(Bullet),
-    range: u32,
+    range: f32,
     attack_tick: u8,
 
     const Bullet = struct {
@@ -81,7 +83,7 @@ pub const BasicTurret = struct {
                 .level = 0,
             },
             .bullets = std.ArrayList(Bullet).init(allocator),
-            .range = 100.0,
+            .range = 3.0 * block_size,
             .attack_tick = 0,
         };
     }
@@ -90,19 +92,33 @@ pub const BasicTurret = struct {
         self.bullets.deinit();
     }
 
+    fn getMonsterInRangeClosest(self: Self, monsters: *MonsterList) ?*Monster {
+        var result: ?*Monster = null;
+        var closestDist = self.range;
+        for (monsters.items) |*m| {
+            const dist = m.getBase().pos.distanceTo(self.base.pos);
+            if (dist < closestDist) {
+                closestDist = dist;
+                result = m;
+            }
+        }
+        return result;
+    }
+
     fn update(self: *Self, map_bounds: MapBounds, monsters: *MonsterList) !void {
         if (self.attack_tick == attack_cooldown_ticks) {
-            try self.bullets.append(.{
-                .base = .{
-                    .pos = self.base.pos,
-                    .vector = .{
-                        .x = 1.0,
-                        .y = 2.0,
+            if (self.getMonsterInRangeClosest(monsters)) |m| {
+                const vector = self.base.pos.vectorTo(m.getBase().pos).withLength(bullet_speed);
+
+                try self.bullets.append(.{
+                    .base = .{
+                        .pos = self.base.pos,
+                        .vector = vector,
                     },
-                },
-                .damage = 50,
-            });
-            self.attack_tick = 0;
+                    .damage = 50,
+                });
+                self.attack_tick = 0;
+            }
         } else {
             self.attack_tick += 1;
         }
