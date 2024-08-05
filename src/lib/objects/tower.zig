@@ -29,10 +29,7 @@ pub const Tower = union(enum) {
     pub fn draw(self: Self) void {
         switch (self) {
             .basic => |v| {
-                rl.drawRectangle(@as(i32, @intFromFloat(v.base.pos.x)) - block_size / 2, @as(i32, @intFromFloat(v.base.pos.y)) - block_size / 2, block_size, block_size, rl.Color.dark_blue);
-                for (v.bullets.items) |b| {
-                    rl.drawCircle(@intFromFloat(b.base.pos.x), @intFromFloat(b.base.pos.y), bullet_radius, rl.Color.blue);
-                }
+                v.draw();
             },
             .laser => |_| {},
         }
@@ -144,6 +141,13 @@ pub const BasicTurret = struct {
             }
         }
         return false;
+    }
+
+    fn draw(self: Self) void {
+        rl.drawRectangle(@as(i32, @intFromFloat(self.base.pos.x)) - block_size / 2, @as(i32, @intFromFloat(self.base.pos.y)) - block_size / 2, block_size, block_size, rl.Color.dark_blue);
+        for (self.bullets.items) |b| {
+            rl.drawCircle(@intFromFloat(b.base.pos.x), @intFromFloat(b.base.pos.y), bullet_radius, rl.Color.blue);
+        }
     }
 };
 
