@@ -9,6 +9,7 @@ const object_types = @import("../objects/types.zig");
 const Monster = monsters.Monster;
 const input = @import("../input.zig");
 const rl = @import("raylib");
+const block_size = @import("../objects/block.zig").block_size;
 
 pub const MapIndexSize = u32;
 pub const MapPixelSize = u32;
@@ -117,8 +118,6 @@ pub fn GameMap() type {
         towers: std.AutoArrayHashMap(BlockIndexes, Tower),
         monsters: MonsterList(),
         bounds: Bounds,
-
-        const block_size = 20;
 
         pub fn draw(self: Self) void {
             for (self.blocks) |row| {
@@ -229,7 +228,7 @@ pub fn GameMap() type {
                 return result.value_ptr;
             }
 
-            self.blocks[indexes.y][indexes.x].type = block.Type.basicTower;
+            self.blocks[indexes.y][indexes.x].type = block.Type.tower;
             return null;
         }
 
@@ -278,7 +277,7 @@ test "creating towers on map" {
     try std.testing.expect(m.towers.values().len == 1);
 
     const coords = GameMap().getBlockIndexesWithCoords(20, 20);
-    try std.testing.expect(m.blocks[coords.y][coords.x].type == block.Type.basicTower);
+    try std.testing.expect(m.blocks[coords.y][coords.x].type == block.Type.tower);
     const t2 = try m.getOrCreateTower(.{
         .x = 20,
         .y = 20,

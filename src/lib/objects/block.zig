@@ -2,12 +2,12 @@ const shapes = @import("../shapes/shapes.zig");
 const rl = @import("raylib");
 const std = @import("std");
 
+pub const block_size = 20;
+
 pub const Type = enum {
     empty,
     wall,
-    // TODO maybe make drawing of towers do nothing here?
-    // then a generic type for towers could be added here instead.
-    basicTower,
+    tower,
 };
 
 pub const Block = struct {
@@ -16,18 +16,11 @@ pub const Block = struct {
     type: Type,
 
     pub fn draw(self: Self) void {
-        var color: rl.Color = undefined;
-        switch (self.type) {
-            .wall => |_| {
-                color = rl.Color.black;
-            },
-            .empty => |_| {
-                color = rl.Color.white;
-            },
-            .basicTower => |_| {
-                color = rl.Color.yellow;
-            },
-        }
+        const color: rl.Color = switch (self.type) {
+            .wall => rl.Color.black,
+            .empty => rl.Color.white,
+            .tower => rl.Color.yellow,
+        };
         rl.drawRectangle(self.shape.x, self.shape.y, self.shape.width, self.shape.width, color);
     }
 };
