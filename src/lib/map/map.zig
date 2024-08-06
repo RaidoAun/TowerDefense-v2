@@ -2,6 +2,7 @@ const std = @import("std");
 const shapes = @import("../shapes/shapes.zig");
 const block = @import("../objects/block.zig");
 const towers = @import("../objects/tower.zig");
+const Minigun = @import("../objects/towers/minigun.zig");
 const Tower = towers.Tower;
 const Block = block.Block;
 const monsters = @import("../objects/monster.zig");
@@ -225,7 +226,7 @@ pub fn GameMap() type {
             };
 
             const result = try self.towers.getOrPutValue(indexes, .{
-                .basic = towers.BasicTurret.init(self.allocator, tower_pos),
+                .basic = Minigun.init(self.allocator, tower_pos),
             });
             if (result.found_existing) {
                 return result.value_ptr;
