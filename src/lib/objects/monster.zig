@@ -3,6 +3,7 @@ const object_types = @import("../objects/types.zig");
 
 pub const monster_radius = 10;
 
+// TODO consider using Struct of Arrays for this.
 pub const Monster = union(enum) {
     const Self = @This();
     basic: Basic,
