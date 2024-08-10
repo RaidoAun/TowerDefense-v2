@@ -50,6 +50,12 @@ pub const Position = struct {
             .y = pos.y - self.y,
         };
     }
+    pub fn applyVector(self: Self, vec: Vector) Self {
+        return .{
+            .x = self.x + vec.x,
+            .y = self.y + vec.y,
+        };
+    }
 };
 
 test "vector length" {
