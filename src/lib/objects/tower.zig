@@ -17,7 +17,9 @@ pub const Tower = union(enum) {
             .basic => |*v| {
                 try v.update(map_bounds, monsters);
             },
-            .laser => |_| {},
+            .laser => |*v| {
+                v.update(monsters);
+            },
         }
     }
     pub fn draw(self: Self) void {
@@ -25,7 +27,9 @@ pub const Tower = union(enum) {
             .basic => |v| {
                 v.draw();
             },
-            .laser => |_| {},
+            .laser => |v| {
+                v.draw();
+            },
         }
     }
     pub fn deinit(self: Self) void {
