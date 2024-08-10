@@ -41,8 +41,8 @@ pub fn deinit(self: Self) void {
 
 pub fn update(self: *Self, map_bounds: MapBounds, monsters: *MonsterList) !void {
     if (self.attack_tick == attack_cooldown_ticks) {
-        if (self.base.getTarget(monsters, self.base.target_selection)) |m| {
-            const vector = self.base.pos.vectorTo(m.getBase().pos).withLength(bullet_speed);
+        if (self.base.getTarget(monsters, self.base.target_selection)) |target| {
+            const vector = self.base.pos.vectorTo(target.monster.getBase().pos).withLength(bullet_speed);
 
             try self.bullets.append(.{
                 .base = .{
@@ -98,7 +98,7 @@ fn isBulletCollisionWithMonster(bullet: Bullet, monsters: *MonsterList) bool {
 }
 
 pub fn draw(self: Self) void {
-    rl.drawRectangle(@as(i32, @intFromFloat(self.base.pos.x)) - block_size / 2, @as(i32, @intFromFloat(self.base.pos.y)) - block_size / 2, block_size, block_size, rl.Color.dark_blue);
+    self.base.draw(rl.Color.dark_blue);
     for (self.bullets.items) |b| {
         rl.drawCircle(@intFromFloat(b.base.pos.x), @intFromFloat(b.base.pos.y), bullet_radius, rl.Color.blue);
     }
