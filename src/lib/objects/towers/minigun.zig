@@ -41,8 +41,8 @@ pub fn deinit(self: Self) void {
 
 pub fn update(self: *Self, map_bounds: MapBounds, monsters: *MonsterList) !void {
     if (self.attack_tick == attack_cooldown_ticks) {
-        if (self.base.getTarget(monsters, self.base.target_selection)) |m| {
-            const vector = self.base.pos.vectorTo(m.getBase().pos).withLength(bullet_speed);
+        if (self.base.getTarget(monsters, self.base.target_selection)) |target| {
+            const vector = self.base.pos.vectorTo(target.monster.getBase().pos).withLength(bullet_speed);
 
             try self.bullets.append(.{
                 .base = .{
