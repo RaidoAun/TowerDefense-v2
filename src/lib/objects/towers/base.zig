@@ -1,4 +1,6 @@
 const object_types = @import("../../objects/types.zig");
+const block_size = @import("../../objects/block.zig").block_size;
+const rl = @import("raylib");
 const map = @import("../../map/map.zig");
 const MonsterList = map.MonsterList();
 const Monster = @import("../../objects/monster.zig").Monster;
@@ -45,4 +47,8 @@ pub fn getTarget(self: Self, monsters: *MonsterList, selection: Selection) ?*Mon
         .close => self.getMonsterInRangeClosest(monsters),
         .far => self.getMonsterInRangeFarthest(monsters),
     };
+}
+
+pub fn draw(self: Self, color: rl.Color) void {
+    rl.drawRectangle(@as(i32, @intFromFloat(self.pos.x)) - block_size / 2, @as(i32, @intFromFloat(self.pos.y)) - block_size / 2, block_size, block_size, color);
 }

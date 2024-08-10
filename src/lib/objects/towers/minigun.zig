@@ -98,7 +98,7 @@ fn isBulletCollisionWithMonster(bullet: Bullet, monsters: *MonsterList) bool {
 }
 
 pub fn draw(self: Self) void {
-    rl.drawRectangle(@as(i32, @intFromFloat(self.base.pos.x)) - block_size / 2, @as(i32, @intFromFloat(self.base.pos.y)) - block_size / 2, block_size, block_size, rl.Color.dark_blue);
+    self.base.draw(rl.Color.dark_blue);
     for (self.bullets.items) |b| {
         rl.drawCircle(@intFromFloat(b.base.pos.x), @intFromFloat(b.base.pos.y), bullet_radius, rl.Color.blue);
     }
