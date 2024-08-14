@@ -83,12 +83,9 @@ fn isBulletCollisionWithMonster(bullet: Bullet, monsters: *MonsterList) bool {
     while (i >= 0) : (i -= 1) {
         var monster_base = monsters.items[@intCast(i)].getBase();
         if (object_types.Position.distanceBetween(monster_base.pos, bullet.base.pos) < monster_radius + bullet_radius) {
-            const sub = @subWithOverflow(monster_base.hp, bullet.damage);
-            const isOverflow = sub[1] == 1;
-            if (isOverflow or sub[0] == 0) {
+            monster_base.hp -|= bullet.damage;
+            if (monster_base.hp == 0) {
                 _ = monsters.swapRemove(@intCast(i));
-            } else {
-                monster_base.hp = sub[0];
             }
 
             return true;
