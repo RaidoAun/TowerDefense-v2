@@ -1,12 +1,13 @@
+const lib = @import("../../lib.zig");
 const BaseTower = @import("base.zig");
-const rl = @import("raylib");
-const map = @import("../../map/map.zig");
-const monster_radius = @import("../../objects/monster.zig").monster_radius;
-const block_size = @import("../../objects/block.zig").block_size;
-const Position = @import("../../objects/types.zig").Position;
+const rl = lib.rl;
+const map = lib.map;
+const monster_radius = lib.object.monster.monster_radius;
+const block_size = lib.object.block.block_size;
+const object_types = lib.object.types;
+const Position = object_types.Position;
 const MonsterList = map.MonsterList();
 
-const object_types = @import("../../objects/types.zig");
 const Self = @This();
 const color = rl.Color.red;
 

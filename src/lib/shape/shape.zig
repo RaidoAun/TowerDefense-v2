@@ -1,6 +1,6 @@
-const utils = @import("utils.zig");
-const rl = @import("raylib");
-const input = @import("../input.zig");
+const lib = @import("../lib.zig");
+const rl = lib.rl;
+const input = lib.input;
 
 pub const Circle = struct {
     x: i32,

@@ -1,19 +1,19 @@
 const std = @import("std");
-const input = @import("lib/input.zig");
-const rl = @import("raylib");
-const objects = @import("lib/objects/objects.zig");
-const utils = @import("lib/shapes/utils.zig");
-const shapes = @import("lib/shapes/shapes.zig");
-const map = @import("lib/map/map.zig");
-const TowerBase = @import("lib/objects/towers/base.zig");
-const Player = objects.Player;
+const lib = @import("lib/lib.zig");
+const input = lib.input;
+const rl = lib.rl;
+const objects = lib.object;
+const shapes = lib.shape;
+const map = lib.map;
+const BaseTower = lib.object.tower.BaseTower;
+const Tower = lib.object.tower.Tower;
 
 const GUI = struct {
     const TowerInfo = struct {
         upgrade: shapes.Rectangle,
         sell: shapes.Rectangle,
         shape: shapes.Rectangle,
-        tower: *map.Tower,
+        tower: *Tower,
 
         pub fn draw(self: @This(), allocator: std.mem.Allocator) !void {
             self.shape.draw();
@@ -36,7 +36,7 @@ const GUI = struct {
         }
     }
 
-    pub fn towerClicked(self: *Self, tower: *map.Tower) void {
+    pub fn towerClicked(self: *Self, tower: *Tower) void {
         const towerBase = tower.getBase();
         const w = 200;
         const h = 100;
@@ -88,7 +88,6 @@ const GUI = struct {
 const GameState = struct {
     const Self = @This();
     deltaTime: f64,
-    player: Player,
     map: map.GameMap(),
     allocator: std.mem.Allocator,
     gui: GUI,
@@ -97,8 +96,6 @@ const GameState = struct {
     // if setting fps too small then items could clip over the walls due to them just moving too many pixels at once
     // the rate should be such that the maximum pixels passed by an object per update shouldnt exceed a blocks smallest width
     fn update(self: *Self) !void {
-        const dt: f64 = self.deltaTime;
-        self.player.update(dt);
         try self.map.update();
 
         if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left)) {
@@ -127,22 +124,11 @@ const GameState = struct {
         self.map.draw();
         rl.drawFPS(100, 100);
         try self.gui.draw();
-        self.player.shape.draw();
     }
 
     fn init(allocator: std.mem.Allocator, dt: f64) !GameState {
         return .{
             .deltaTime = dt,
-            .player = .{
-                .speed = 500,
-                .shape = .{
-                    .x = 400,
-                    .y = 225,
-                    .width = 100,
-                    .height = 20,
-                    .color = rl.Color.red,
-                },
-            },
             .map = try map.GameMap().initMap(allocator, 20, 20),
             .allocator = allocator,
             .gui = .{

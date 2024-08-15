@@ -1,5 +1,6 @@
-const rl = @import("raylib");
-const object_types = @import("../objects/types.zig");
+const lib = @import("../lib.zig");
+const rl = lib.rl;
+const object_types = lib.object.types;
 
 pub const monster_radius = 10;
 
