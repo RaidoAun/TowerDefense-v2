@@ -1,10 +1,89 @@
 const std = @import("std");
+const input = @import("lib/input.zig");
 const rl = @import("raylib");
 const objects = @import("lib/objects/objects.zig");
 const utils = @import("lib/shapes/utils.zig");
 const shapes = @import("lib/shapes/shapes.zig");
 const map = @import("lib/map/map.zig");
+const TowerBase = @import("lib/objects/towers/base.zig");
 const Player = objects.Player;
+
+const GUI = struct {
+    const TowerInfo = struct {
+        upgrade: shapes.Rectangle,
+        sell: shapes.Rectangle,
+        shape: shapes.Rectangle,
+        tower: *map.Tower,
+
+        pub fn draw(self: @This(), allocator: std.mem.Allocator) !void {
+            self.shape.draw();
+            self.upgrade.draw();
+            self.sell.draw();
+
+            // TODO write test for allocation and free
+            const text = try std.fmt.allocPrintZ(allocator, "level: {}\nrange: {d}", .{ self.tower.getBase().level, self.tower.getBase().range });
+            defer allocator.free(text);
+            rl.drawText(text, self.shape.x + 10, self.shape.y + 50, 20, rl.Color.black);
+        }
+    };
+    const Self = @This();
+    towerInfo: ?TowerInfo,
+    allocator: std.mem.Allocator,
+
+    pub fn draw(self: Self) !void {
+        if (self.towerInfo) |v| {
+            try v.draw(self.allocator);
+        }
+    }
+
+    pub fn towerClicked(self: *Self, tower: *map.Tower) void {
+        const towerBase = tower.getBase();
+        const w = 200;
+        const h = 100;
+        const x = @as(i32, @intFromFloat(towerBase.pos.x - w / 2));
+        const y = @as(i32, @intFromFloat(towerBase.pos.y - h * 2));
+        self.towerInfo = .{
+            .sell = .{
+                .x = x + w - 40,
+                .y = y + h - 40,
+                .width = 20,
+                .height = 20,
+                .color = rl.Color.red,
+            },
+            .upgrade = .{
+                .x = x + 20,
+                .y = y + h - 40,
+                .width = 20,
+                .height = 20,
+                .color = rl.Color.green,
+            },
+            .shape = .{
+                .x = x,
+                .y = y,
+                .width = w,
+                .height = h,
+                .color = rl.Color.light_gray,
+            },
+            .tower = tower,
+        };
+    }
+
+    pub fn handleInput(self: *Self, pos: input.Position, game_map: *map.GameMap()) !bool {
+        if (self.towerInfo) |towerInfo| {
+            if (!towerInfo.shape.containsMouseInput(pos)) return false;
+
+            if (towerInfo.upgrade.containsMouseInput(pos)) {
+                towerInfo.tower.levelUp();
+            }
+            if (towerInfo.sell.containsMouseInput(pos)) {
+                try game_map.removeTower(map.GameMap().getBlockIndexesWithCoords(@intFromFloat(towerInfo.tower.getBase().pos.x), @intFromFloat(towerInfo.tower.getBase().pos.y)));
+                self.towerInfo = null;
+            }
+            return true;
+        }
+        return false;
+    }
+};
 
 const GameState = struct {
     const Self = @This();
@@ -12,6 +91,7 @@ const GameState = struct {
     player: Player,
     map: map.GameMap(),
     allocator: std.mem.Allocator,
+    gui: GUI,
 
     // TODO update rate should be seperate from draw rate
     // if setting fps too small then items could clip over the walls due to them just moving too many pixels at once
@@ -20,9 +100,25 @@ const GameState = struct {
         const dt: f64 = self.deltaTime;
         self.player.update(dt);
         try self.map.update();
+
+        if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left)) {
+            const mouse_pos = input.getMousePosition();
+            if (!(try self.gui.handleInput(mouse_pos, &self.map))) {
+                self.gui.towerInfo = null;
+
+                if (try self.map.getOrCreateTower(mouse_pos)) |tower| {
+                    self.gui.towerClicked(tower);
+
+                    std.debug.print("tower: {}\n", .{tower.*});
+                }
+            }
+        }
+        if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_right)) {
+            try self.map.createMonster(input.getMousePosition());
+        }
     }
 
-    fn draw(self: Self) void {
+    fn draw(self: Self) !void {
         rl.beginDrawing();
         defer rl.endDrawing();
 
@@ -30,6 +126,7 @@ const GameState = struct {
 
         self.map.draw();
         rl.drawFPS(100, 100);
+        try self.gui.draw();
         self.player.shape.draw();
     }
 
@@ -48,6 +145,10 @@ const GameState = struct {
             },
             .map = try map.GameMap().initMap(allocator, 20, 20),
             .allocator = allocator,
+            .gui = .{
+                .towerInfo = null,
+                .allocator = allocator,
+            },
         };
     }
 
@@ -84,7 +185,7 @@ pub fn main() !void {
             try state.update();
         }
 
-        state.draw();
+        try state.draw();
     }
 }
 

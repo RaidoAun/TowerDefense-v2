@@ -143,15 +143,6 @@ pub fn GameMap() type {
             for (self.towers.values()) |*t| {
                 try t.update(self.bounds, &self.monsters);
             }
-
-            if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left)) {
-                if (try self.getOrCreateTower(input.getMousePosition())) |tower| {
-                    std.debug.print("tower: {}\n", .{tower.*});
-                }
-            }
-            if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_right)) {
-                try self.createMonster(input.getMousePosition());
-            }
         }
 
         pub fn initMap(allocator: std.mem.Allocator, sizeX: MapIndexSize, sizeY: MapIndexSize) !GameMap() {
