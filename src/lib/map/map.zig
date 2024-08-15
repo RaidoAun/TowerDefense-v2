@@ -3,7 +3,7 @@ const shapes = @import("../shapes/shapes.zig");
 const block = @import("../objects/block.zig");
 const towers = @import("../objects/tower.zig");
 const Minigun = @import("../objects/towers/minigun.zig");
-const Tower = towers.Tower;
+pub const Tower = towers.Tower;
 const Block = block.Block;
 const monsters = @import("../objects/monster.zig");
 const object_types = @import("../objects/types.zig");
@@ -17,6 +17,7 @@ pub const MapPixelSize = u32;
 
 const Error = error{
     OutsideMapBounds,
+    InvalidKey,
 };
 
 pub const Bounds = struct {
@@ -218,7 +219,7 @@ pub fn GameMap() type {
         pub fn getOrCreateTower(self: *Self, pos: input.Position) !?*Tower {
             const indexes = getBlockIndexesWithCoords(pos.x, pos.y);
             if (indexes.y >= self.blocks.len or indexes.x >= self.blocks.len) {
-                return error.OutsideMapBounds;
+                return Error.OutsideMapBounds;
             }
             const tower_pos = object_types.Position{
                 .x = @as(object_types.Position.T, @floatFromInt(indexes.x * block_size)) + @as(object_types.Position.T, block_size) / 2,
@@ -234,6 +235,11 @@ pub fn GameMap() type {
 
             self.blocks[indexes.y][indexes.x].type = block.Type.tower;
             return null;
+        }
+
+        pub fn removeTower(self: *Self, indexes: BlockIndexes) !void {
+            if (!self.towers.swapRemove(indexes)) return Error.InvalidKey;
+            self.blocks[indexes.y][indexes.x].type = block.Type.empty;
         }
 
         pub fn createMonster(self: *Self, pos: input.Position) !void {
@@ -288,6 +294,12 @@ test "creating towers on map" {
     });
     try std.testing.expect(t2 != null);
     try std.testing.expect(m.towers.values().len == 1);
+
+    try m.removeTower(coords);
+    try std.testing.expect(m.towers.values().len == 0);
+    try std.testing.expect(m.blocks[coords.y][coords.x].type == block.Type.empty);
+
+    try std.testing.expectError(Error.InvalidKey, m.removeTower(coords));
 }
 
 test "creating towers outside map bounds does not panic" {
