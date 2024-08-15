@@ -1,16 +1,17 @@
 const std = @import("std");
-const shapes = @import("../shapes/shapes.zig");
-const block = @import("../objects/block.zig");
-const towers = @import("../objects/tower.zig");
-const Minigun = @import("../objects/towers/minigun.zig");
-pub const Tower = towers.Tower;
+const lib = @import("../lib.zig");
+const shapes = lib.shape;
+const block = lib.object.block;
+const towers = lib.object.tower;
+const Minigun = towers.Minigun;
+const Tower = towers.Tower;
 const Block = block.Block;
-const monsters = @import("../objects/monster.zig");
-const object_types = @import("../objects/types.zig");
+const monsters = lib.object.monster;
+const object_types = lib.object.types;
 const Monster = monsters.Monster;
-const input = @import("../input.zig");
-const rl = @import("raylib");
-const block_size = @import("../objects/block.zig").block_size;
+const input = lib.input;
+const rl = lib.rl;
+const block_size = block.block_size;
 
 pub const MapIndexSize = u32;
 pub const MapPixelSize = u32;

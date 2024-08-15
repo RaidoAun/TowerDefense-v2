@@ -1,9 +1,9 @@
-const map = @import("../map/map.zig");
-const BaseTower = @import("../objects/towers/base.zig");
-const Minigun = @import("../objects/towers/minigun.zig");
-const Laser = @import("../objects/towers/laser.zig");
-const MapBounds = map.Bounds;
-const MonsterList = map.MonsterList();
+pub const BaseTower = @import("base.zig");
+pub const Minigun = @import("minigun.zig");
+pub const Laser = @import("laser.zig");
+const lib = @import("../../lib.zig");
+const MapBounds = lib.map.Bounds;
+const MonsterList = lib.map.MonsterList();
 
 // TODO consider using Struct of Arrays for this.
 pub const Tower = union(enum) {

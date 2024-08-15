@@ -1,4 +1,4 @@
-const shapes = @import("shapes.zig");
+const shapes = @import("main.zig");
 const Rectangle = shapes.Rectangle;
 const Circle = shapes.Circle;
 

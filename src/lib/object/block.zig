@@ -1,6 +1,7 @@
-const shapes = @import("../shapes/shapes.zig");
-const rl = @import("raylib");
 const std = @import("std");
+const lib = @import("../lib.zig");
+const shapes = lib.shape;
+const rl = lib.rl;
 
 pub const block_size = 20;
 

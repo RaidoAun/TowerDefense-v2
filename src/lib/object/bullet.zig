@@ -1,5 +1,6 @@
-const object_types = @import("../objects/types.zig");
-const map = @import("../map/map.zig");
+const lib = @import("../lib.zig");
+const object_types = lib.object.types;
+const map = lib.map;
 const MapBounds = map.Bounds;
 
 pub const BulletBase = struct {

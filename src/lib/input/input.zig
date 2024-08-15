@@ -1,4 +1,5 @@
-const rl = @import("raylib");
+const lib = @import("../lib.zig");
+const rl = lib.rl;
 
 pub const Position = struct {
     x: i32,

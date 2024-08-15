@@ -1,9 +1,9 @@
-const object_types = @import("../../objects/types.zig");
-const block_size = @import("../../objects/block.zig").block_size;
-const rl = @import("raylib");
-const map = @import("../../map/map.zig");
-const MonsterList = map.MonsterList();
-const Monster = @import("../../objects/monster.zig").Monster;
+const lib = @import("../../lib.zig");
+const object_types = lib.object.types;
+const block_size = lib.object.block.block_size;
+const rl = lib.rl;
+const MonsterList = lib.map.MonsterList();
+const Monster = lib.object.monster.Monster;
 
 const Self = @This();
 pub const Selection = enum {
