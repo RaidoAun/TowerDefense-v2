@@ -1,4 +1,5 @@
 const map = @import("../map/map.zig");
+const BaseTower = @import("../objects/towers/base.zig");
 const Minigun = @import("../objects/towers/minigun.zig");
 const Laser = @import("../objects/towers/laser.zig");
 const MapBounds = map.Bounds;
@@ -38,6 +39,23 @@ pub const Tower = union(enum) {
                 v.deinit();
             },
             .laser => |_| {},
+        }
+    }
+    pub fn getBase(self: Self) BaseTower {
+        return switch (self) {
+            .basic => |v| v.base,
+            .laser => |v| v.base,
+        };
+    }
+
+    pub fn levelUp(self: *Self) void {
+        switch (self.*) {
+            .basic => |*v| {
+                v.base.level += 1;
+            },
+            .laser => |*v| {
+                v.base.level += 1;
+            },
         }
     }
 };
