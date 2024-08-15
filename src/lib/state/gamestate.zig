@@ -12,6 +12,9 @@ const GUI = struct {
         upgrade: shapes.Rectangle,
         sell: shapes.Rectangle,
         shape: shapes.Rectangle,
+        // TODO reconsider if using a pointer here is a good idea.
+        // If the towers list gets resized this will beciome a dangling pointer.
+        // This should never happen right now though.
         tower: *Tower,
 
         pub fn draw(self: @This(), allocator: std.mem.Allocator) !void {
