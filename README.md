@@ -5,10 +5,10 @@ https://www.raylib.com/
 
 ### Dev setup
 zig version:  
-0.14.0-dev.363+c3faae6bf
+0.14.0-dev.855+de1fb1990
 
 zls version:  
-0.14.0-dev.43+41dae22
+0.14.0-dev.147+dd78968
 
 In practice it is probably fine to get current master branch from  
 https://ziglang.org/download/  
