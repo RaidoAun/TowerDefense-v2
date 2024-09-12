@@ -2,7 +2,6 @@ const std = @import("std");
 const lib = @import("../lib.zig");
 const input = lib.input;
 const rl = lib.rl;
-const map = lib.map;
 const BaseTower = lib.object.tower.BaseTower;
 const Tower = lib.object.tower.Tower;
 const shapes = lib.shape;
@@ -70,7 +69,7 @@ const GUI = struct {
         };
     }
 
-    pub fn handleInput(self: *@This(), pos: input.Position, game_map: *map.GameMap()) !bool {
+    pub fn handleInput(self: *@This(), pos: input.Position, game_map: *lib.map.GameMap()) !bool {
         if (self.towerInfo) |towerInfo| {
             if (!towerInfo.shape.containsMouseInput(pos)) return false;
 
@@ -78,7 +77,7 @@ const GUI = struct {
                 towerInfo.tower.levelUp();
             }
             if (towerInfo.sell.containsMouseInput(pos)) {
-                try game_map.removeTower(map.GameMap().getBlockIndexesWithCoords(@intFromFloat(towerInfo.tower.getBase().pos.x), @intFromFloat(towerInfo.tower.getBase().pos.y)));
+                try game_map.removeTower(lib.map.GameMap().getBlockIndexesWithCoords(@intFromFloat(towerInfo.tower.getBase().pos.x), @intFromFloat(towerInfo.tower.getBase().pos.y)));
                 self.towerInfo = null;
             }
             return true;
@@ -89,7 +88,7 @@ const GUI = struct {
 
 const Self = @This();
 deltaTime: f64,
-map: map.GameMap(),
+map: lib.map.GameMap(),
 allocator: std.mem.Allocator,
 gui: GUI,
 
@@ -130,7 +129,7 @@ pub fn draw(self: Self) !void {
 pub fn init(allocator: std.mem.Allocator, dt: f64) !Self {
     return .{
         .deltaTime = dt,
-        .map = try map.GameMap().initMap(allocator, 20, 20),
+        .map = try lib.map.GameMap().initMap(allocator, 20, 20),
         .allocator = allocator,
         .gui = .{
             .towerInfo = null,
