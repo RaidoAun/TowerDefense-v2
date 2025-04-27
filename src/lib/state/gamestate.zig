@@ -98,7 +98,7 @@ gui: GUI,
 pub fn update(self: *Self) !void {
     try self.map.update();
 
-    if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left)) {
+    if (rl.isMouseButtonPressed(rl.MouseButton.left)) {
         const mouse_pos = input.getMousePosition();
         if (!(try self.gui.handleInput(mouse_pos, &self.map))) {
             self.gui.towerInfo = null;
@@ -110,7 +110,7 @@ pub fn update(self: *Self) !void {
             }
         }
     }
-    if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_right)) {
+    if (rl.isMouseButtonPressed(rl.MouseButton.right)) {
         try self.map.createMonster(input.getMousePosition());
     }
 }
